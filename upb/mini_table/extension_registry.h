@@ -71,6 +71,9 @@ bool upb_ExtensionRegistry_AddArray(upb_ExtensionRegistry* r,
                                     const upb_MiniTableExtension** e,
                                     size_t count);
 
+UPB_API bool upb_ExtensionRegistry_AddAllLinkedExtensions(
+    upb_ExtensionRegistry* r);
+
 // Looks up the extension (if any) defined for message type |t| and field
 // number |num|. Returns the extension if found, otherwise NULL.
 UPB_API const upb_MiniTableExtension* upb_ExtensionRegistry_Lookup(
