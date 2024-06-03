@@ -11,6 +11,7 @@
 #define GOOGLE_PROTOBUF_RUST_CPP_KERNEL_CPP_H__
 
 #include <cstddef>
+#include <cstdint>
 #include <cstring>
 #include <string>
 
@@ -31,11 +32,11 @@ namespace rust_internal {
 // * The data were allocated using the Rust allocator.
 //
 extern "C" struct SerializedData {
-  // Owns the memory.
-  const char* data;
+  // Owns the memory, must be freed by Rust.
+  const uint8_t* data;
   size_t len;
 
-  SerializedData(const char* data, size_t len) : data(data), len(len) {}
+  SerializedData(const uint8_t* data, size_t len) : data(data), len(len) {}
 };
 
 // Allocates memory using the current Rust global allocator.
@@ -45,14 +46,14 @@ extern "C" void* __pb_rust_alloc(size_t size, size_t align);
 
 inline bool SerializeMsg(const google::protobuf::MessageLite* msg, SerializedData* out) {
   size_t len = msg->ByteSizeLong();
-  void* bytes = __pb_rust_alloc(len, alignof(char));
+  uint8_t* bytes = static_cast<uint8_t*>(__pb_rust_alloc(len, alignof(char)));
   if (bytes == nullptr) {
     ABSL_LOG(FATAL) << "Rust allocator failed to allocate memory.";
   }
-  if (!msg->SerializeToArray(bytes, static_cast<int>(len))) {
+  if (!msg->SerializeWithCachedSizesToArray(bytes)) {
     return false;
   }
-  *out = SerializedData(static_cast<char*>(bytes), len);
+  *out = SerializedData(bytes, len);
   return true;
 }
 
